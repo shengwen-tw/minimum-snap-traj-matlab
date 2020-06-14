@@ -42,8 +42,8 @@ classdef motion_planner
                      0 0 2    6*t   12*t^2 20*t^3 30*t^4  42*t^5;
                      0 0 0    6     24*t   60*t^2 120*t^3 210*t^4];
               
-            A = [A_start; A_end]
-            d = [start_val; 0; 0; 0; end_val; 0; 0; 0]
+            A = [A_start; A_end];
+            d = [start_val; 0; 0; 0; end_val; 0; 0; 0];
             
             traj_polys = quadprog(Q, [], [], [], A, d);
         end
