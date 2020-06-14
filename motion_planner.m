@@ -7,10 +7,7 @@ classdef motion_planner
                      0 0 0    6     24*t   60*t^2 120*t^3 210*t^4];
         end
         
-        function traj_polys = plan_optimized_segment(obj, start_val, end_val, flight_time)
-            t = flight_time;
-            
-            %construct hessian matrix
+        function Q = generate_Q_matrix(obj, t)
             b0 = 24;
             b1 = 120;
             b2 = 360;
@@ -32,6 +29,13 @@ classdef motion_planner
             Q(8, 6) = b1 * b3 * (1/5) * t^5;
             Q(8, 7) = b2 * b3 * (1/6) * t^6;
             Q(8, 8) = b3 * b3 * (1/7) * t^7;
+        end
+        
+        function traj_polys = plan_optimized_segment(obj, traj, traj_size)
+            t = traj(1).t;
+            
+            %construct hessian matrix
+            Q = generate_Q_matrix(obj, t)
             
             %construct equility constraints
             A_start = [1 0 0 0 0 0 0 0;
@@ -70,7 +74,7 @@ classdef motion_planner
             end
             %disp(A);
             
-            d = [start_val; 0; 0; 0; end_val; 0; 0; 0];
+            d = [traj(1).p_start; 0; 0; 0; traj(1).p_end; 0; 0; 0];
             
             traj_polys = quadprog(Q, [], [], [], A, d);
         end

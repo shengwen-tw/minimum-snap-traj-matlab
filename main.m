@@ -19,10 +19,10 @@ traj_size = 1;
 p_start = 0.5;
 p_end = 1.0;
 t = 1;
-traj1_coeff=mp.plan_optimized_segment(p_start, p_end, t);
+traj1_coeff=mp.plan_optimized_segment(traj, 1);
 
 %plot trajectory 1
-time_step = traj1_flight_time / ITERATION_TIMES;
+time_step = traj(2).t / ITERATION_TIMES;
 for i = 1: ITERATION_TIMES
     time_arr(i) = i * time_step;
     traj_x_arr(i) = mp.calc_7th_polynomial(traj1_coeff, i * time_step);
