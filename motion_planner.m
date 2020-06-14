@@ -32,10 +32,16 @@ classdef motion_planner
         end
         
         function traj_polys = plan_optimized_segment(obj, traj, traj_size)
-            t = traj(1).t;
+            H = zeros(traj_size*8, traj_size*8);
             
             %construct hessian matrix
-            Q = generate_Q_matrix(obj, t)
+            for i = 1: traj_size
+                Q = generate_Q_matrix(obj, traj(i).t);
+                %disp(Q);
+                
+                r = (i-1)*8 + 1;
+                H(r:r+7, r:r+7) = Q;
+            end
             
             %construct equility constraints
             A_start = [1 0 0 0 0 0 0 0;
@@ -49,13 +55,11 @@ classdef motion_planner
                       0  0  0 -6 0 0 0 0];
                  
             %generate A matrix
-            wp_cnt = 2;      %TODO: replace with func arg
-            t_list = [1; 1]; %TODO: replace with func arg
-            A = zeros(wp_cnt * 4, (wp_cnt -1) * 8);
-            size(A)
-            for i = 1: (wp_cnt - 1)
+            wp_cnt = traj_size + 1;
+            A = zeros(wp_cnt * 4, (wp_cnt - 1) * 8);
+            for i = 1: traj_size
                 if i == 1
-                    A_end = generate_A_end_matrix(obj, t_list(i));
+                    A_end = generate_A_end_matrix(obj, traj(i).t);
                     
                     start_r = 1;
                     end_r = 1 + 4;
@@ -63,20 +67,56 @@ classdef motion_planner
                     A(start_r:start_r+3, c:c+7) = A_start;
                     A(end_r:end_r+3, c:c+7) = A_end;
                 else
-                    A_end = generate_A_end_matrix(obj, t_list(i));
+                    A_end = generate_A_end_matrix(obj, traj(i).t);
                     
-                    next_r = (i*4) + 1;
-                    end_r = (i+1)*4 + 1;
-                    c = (i*4) + 1;
+                    next_r = ((i-1)*4) + 1;
+                    end_r = (i*4) + 1;
+                    c = ((i-1)*8) + 1;
                     A(next_r:next_r+3, c:c+7) = A_next;
                     A(end_r:end_r+3, c:c+7) = A_end;
+                    
+                    %disp(next_r)
+                    %disp(end_r)
+                    %disp(c)
                 end
             end
-            %disp(A);
             
-            d = [traj(1).p_start; 0; 0; 0; traj(1).p_end; 0; 0; 0];
+            d = zeros(4*wp_cnt, 1);
+            for i = 1: traj_size
+                start_r = (i - 1) * 4;
+                d(start_r+1) = traj(i).p_start; %position
+                d(start_r+2) = 0; %velocity
+                d(start_r+3) = 0; %acceleration
+                d(start_r+4) = 0; %jerk
+                
+                end_r = i * 4;
+                d(end_r+1) = traj(i).p_end; %position
+                d(end_r+2) = 0; %velocity
+                d(end_r+3) = 0; %acceleration
+                d(end_r+4) = 0; %jerk
+            end
             
-            traj_polys = quadprog(Q, [], [], [], A, d);
+            %disp(H)
+            %disp(A)
+            %disp(d)
+            
+            %size(H)
+            %size(A)
+            %size(d)
+            
+            traj_polys = quadprog(H, [], [], [], A, d)
+        end
+        
+        function traj_coeffs=get_traj_coeff_from_list(obj, index, coeff_list)
+            new_index = (index - 1) * 8;
+            traj_coeffs = [coeff_list(new_index+1);
+                           coeff_list(new_index+2);
+                           coeff_list(new_index+3);
+                           coeff_list(new_index+4);
+                           coeff_list(new_index+5);
+                           coeff_list(new_index+6);
+                           coeff_list(new_index+7);
+                           coeff_list(new_index+8)];
         end
         
         function result=calc_7th_polynomial(obj, c, t)
