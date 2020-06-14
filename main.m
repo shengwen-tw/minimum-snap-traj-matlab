@@ -5,13 +5,21 @@ mp = motion_planner;
 time_arr = zeros(1, ITERATION_TIMES);
 traj_x_arr = zeros(1, ITERATION_TIMES);
 
-%waypoints
-p_start = [0.5; 0; 0];
-p_end = [1, 2, 3];
+traj(1).p_start = 0.5;
+traj(1).p_end = 1.0;
+traj(1).t = 1.0;
+
+traj(2).p_start = 1.0;
+traj(2).p_end = 2.0;
+traj(2).t = 1.0;
+
+traj_size = 1;
 
 %trajectory planning
-traj1_flight_time = 1;
-traj1_coeff=mp.plan_optimized_segment(p_start(1), p_end(1), traj1_flight_time);
+p_start = 0.5;
+p_end = 1.0;
+t = 1;
+traj1_coeff=mp.plan_optimized_segment(p_start, p_end, t);
 
 %plot trajectory 1
 time_step = traj1_flight_time / ITERATION_TIMES;

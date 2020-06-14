@@ -1,5 +1,12 @@
 classdef motion_planner    
     methods
+        function A_end = generate_A_end_matrix(obj, t)
+            A_end = [1 t t^2  t^3   t^4    t^5    t^6     t^7;
+                     0 1 2*t  3*t^2 4*t^3  5*t^4  6*t^5   7*t^6;
+                     0 0 2    6*t   12*t^2 20*t^3 30*t^4  42*t^5;
+                     0 0 0    6     24*t   60*t^2 120*t^3 210*t^4];
+        end
+        
         function traj_polys = plan_optimized_segment(obj, start_val, end_val, flight_time)
             t = flight_time;
             
@@ -36,13 +43,33 @@ classdef motion_planner
                       0 -1  0  0 0 0 0 0;
                       0  0 -2  0 0 0 0 0;
                       0  0  0 -6 0 0 0 0];
-                  
-            A_end = [1 t t^2  t^3   t^4    t^5    t^6     t^7;
-                     0 1 2*t  3*t^2 4*t^3  5*t^4  6*t^5   7*t^6;
-                     0 0 2    6*t   12*t^2 20*t^3 30*t^4  42*t^5;
-                     0 0 0    6     24*t   60*t^2 120*t^3 210*t^4];
-              
-            A = [A_start; A_end];
+                 
+            %generate A matrix
+            wp_cnt = 2;      %TODO: replace with func arg
+            t_list = [1; 1]; %TODO: replace with func arg
+            A = zeros(wp_cnt * 4, (wp_cnt -1) * 8);
+            size(A)
+            for i = 1: (wp_cnt - 1)
+                if i == 1
+                    A_end = generate_A_end_matrix(obj, t_list(i));
+                    
+                    start_r = 1;
+                    end_r = 1 + 4;
+                    c = 1;                    
+                    A(start_r:start_r+3, c:c+7) = A_start;
+                    A(end_r:end_r+3, c:c+7) = A_end;
+                else
+                    A_end = generate_A_end_matrix(obj, t_list(i));
+                    
+                    next_r = (i*4) + 1;
+                    end_r = (i+1)*4 + 1;
+                    c = (i*4) + 1;
+                    A(next_r:next_r+3, c:c+7) = A_next;
+                    A(end_r:end_r+3, c:c+7) = A_end;
+                end
+            end
+            %disp(A);
+            
             d = [start_val; 0; 0; 0; end_val; 0; 0; 0];
             
             traj_polys = quadprog(Q, [], [], [], A, d);
