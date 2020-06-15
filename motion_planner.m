@@ -53,10 +53,12 @@ classdef motion_planner
                       0 -1  0  0 0 0 0 0;
                       0  0 -2  0 0 0 0 0;
                       0  0  0 -6 0 0 0 0];
-                 
+            
+            A_interior_point = [1 0 0 0 0 0 0 0];
+                  
             %generate A matrix
             wp_cnt = traj_size + 1;
-            A = zeros(wp_cnt * 4, (wp_cnt - 1) * 8);
+            A = zeros(wp_cnt*4 + (traj_size-1), (wp_cnt - 1) * 8);
             for i = 1: traj_size
                 if i == 1
                     A_end = generate_A_end_matrix(obj, traj(i).t);
@@ -80,8 +82,17 @@ classdef motion_planner
                     %disp(c)
                 end
             end
+            %
+            for i = 1: (traj_size-1)
+                r = wp_cnt*4 + i;
+                c = i*8 + 1;
+                A(r, c:c+7) = A_interior_point;
+                
+                %disp(r);
+                %disp(c);
+            end
             
-            d = zeros(4*wp_cnt, 1);
+            d = zeros(4*wp_cnt + traj_size-1, 1);
             for i = 1: traj_size
                 start_r = (i - 1) * 4;
                 d(start_r+1) = traj(i).p_start; %position
@@ -94,6 +105,11 @@ classdef motion_planner
                 d(end_r+2) = 0; %velocity
                 d(end_r+3) = 0; %acceleration
                 d(end_r+4) = 0; %jerk
+            end
+            %
+            for i = 1: (traj_size-1)
+                r = wp_cnt*4 + i;
+                d(r) = traj(i+1).p_start(1);
             end
             
             %disp(H)
