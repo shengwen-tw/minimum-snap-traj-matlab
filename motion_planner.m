@@ -96,15 +96,15 @@ classdef motion_planner
             for i = 1: traj_size
                 start_r = (i - 1) * 4;
                 d(start_r+1) = traj(i).p_start; %position
-                d(start_r+2) = 0; %velocity
-                d(start_r+3) = 0; %acceleration
-                d(start_r+4) = 0; %jerk
+                d(start_r+2) = 0;               %velocity
+                d(start_r+3) = 0;               %acceleration
+                d(start_r+4) = 0;               %jerk
                 
                 end_r = i * 4;
                 d(end_r+1) = traj(i).p_end; %position
-                d(end_r+2) = 0; %velocity
-                d(end_r+3) = 0; %acceleration
-                d(end_r+4) = 0; %jerk
+                d(end_r+2) = 0;             %velocity
+                d(end_r+3) = 0;             %acceleration
+                d(end_r+4) = 0;             %jerk
             end
             %
             for i = 1: (traj_size-1)
@@ -120,7 +120,7 @@ classdef motion_planner
             %size(A)
             %size(d)
             
-            traj_polys = quadprog(H, [], [], [], A, d)
+            traj_polys = quadprog(H, [], [], [], A, d);
         end
         
         function traj_coeffs=get_traj_coeff_from_list(obj, index, coeff_list)
