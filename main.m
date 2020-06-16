@@ -1,4 +1,4 @@
-mp = motion_planner;
+traj_gen = trajectory_generator;
 
 %trajectory parameters
 traj_size = 3;
@@ -13,16 +13,10 @@ flight_times(2) = 1.0;
 flight_times(3) = 1.0;
 
 %trajectory planning
-traj_coeff_list=mp.plan_optimized_segment(waypoints, flight_times, traj_size);
+traj_coeff_list = traj_gen.plan_optimized_segment(waypoints, flight_times, traj_size);
 
-total_flight_time = 0;
-for i = 1: traj_size
-    %create coefficient list for all trajectories
-    traj_coeff(i, :) = mp.get_traj_coeff_from_list(i, traj_coeff_list);
-    
-    %calculate total flight time of all trajectories
-    total_flight_time = total_flight_time + traj(i).t;
-end
+%get total flight time
+total_flight_time = traj_gen.get_total_flight_time(flight_times, traj_size);
 
 %create arrays for plotting
 PLOT_TIMES_PER_SECOND = 50;
@@ -40,7 +34,7 @@ for i = 1: traj_size
     %plot i-th trajectory
     for j = 1: traj_plot_times
         %update trajectory array
-        traj_arr(elapsed_index + j) = mp.calc_7th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+        traj_arr(elapsed_index + j) = traj_gen.calc_7th_polynomial(traj_coeff_list(i, :), (j-1) * time_step);
         
         %update elapsed time array
         time_arr(elapsed_index + j) = (elapsed_index + j - 1) * time_step;
