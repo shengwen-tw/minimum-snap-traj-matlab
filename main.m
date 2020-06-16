@@ -9,34 +9,44 @@ traj(2).p_start = 1.0;
 traj(2).p_end = 2.0;
 traj(2).t = 1.0;
 %
-traj_size = 2;
+traj(3).p_start = 2.0;
+traj(3).p_end = 4.0;
+traj(3).t = 1.0;
+%
+traj_size = 3;
 
 %trajectory planning
 traj_coeff_list=mp.plan_optimized_segment(traj, traj_size);
-traj1_coeff = mp.get_traj_coeff_from_list(1, traj_coeff_list);
-traj2_coeff = mp.get_traj_coeff_from_list(2, traj_coeff_list);
 
+total_flight_time = 0;
+for i = 1: traj_size
+    %create coefficient list for all trajectories
+    traj_coeff(i, :) = mp.get_traj_coeff_from_list(i, traj_coeff_list);
+    
+    %calculate total flight time of all trajectories
+    total_flight_time = total_flight_time + traj(i).t;
+end
+
+%create arrays for plotting
 PLOT_TIMES_PER_SECOND = 50;
-ITERATION_TIMES = (traj(1).t + traj(2).t) * PLOT_TIMES_PER_SECOND;
-
-%plot arrays
+ITERATION_TIMES = total_flight_time * PLOT_TIMES_PER_SECOND;
 time_arr = zeros(1, ITERATION_TIMES);
 traj_arr = zeros(1, ITERATION_TIMES);
 
-%plot trajectory 1
+%plot trajectories
 elapsed_plot_time = 0;
-traj_plot_times = traj(1).t * PLOT_TIMES_PER_SECOND;
-time_step = traj(1).t / traj_plot_times;
-for i = 1: traj_plot_times
-    traj_arr(i) = mp.calc_7th_polynomial(traj1_coeff, (i-1) * time_step);
-end
-
-%plot trajectory 2
-elapsed_plot_time = traj_plot_times;
-traj_plot_times = traj(2).t * PLOT_TIMES_PER_SECOND;
-time_step = traj(2).t / traj_plot_times;
-for i = 1: traj_plot_times
-    traj_arr(elapsed_plot_time + i) = mp.calc_7th_polynomial(traj2_coeff, (i-1) * time_step);
+for i = 1: traj_size
+    %calculate i-th trajectory plot times and time step
+    traj_plot_times = traj(i).t * PLOT_TIMES_PER_SECOND;
+    time_step = traj(i).t / traj_plot_times;
+    
+    %plot i-th trajectory
+    for j = 1: traj_plot_times
+        traj_arr(elapsed_plot_time + j) = mp.calc_7th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+    end
+    
+    %accumlate total elapsed time
+    elapsed_plot_time = elapsed_plot_time + traj_plot_times;
 end
 
 for i = 1: ITERATION_TIMES
@@ -47,3 +57,5 @@ figure('Name', 'trajectory');
 plot(time_arr, traj_arr);
 xlabel('time [s]');
 ylabel('x position [m]');
+pause;
+close all;
