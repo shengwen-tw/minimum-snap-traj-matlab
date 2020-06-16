@@ -34,7 +34,7 @@ time_arr = zeros(1, ITERATION_TIMES);
 traj_arr = zeros(1, ITERATION_TIMES);
 
 %plot trajectories
-elapsed_plot_time = 0;
+elapsed_index = 0;
 for i = 1: traj_size
     %calculate i-th trajectory plot times and time step
     traj_plot_times = traj(i).t * PLOT_TIMES_PER_SECOND;
@@ -42,15 +42,15 @@ for i = 1: traj_size
     
     %plot i-th trajectory
     for j = 1: traj_plot_times
-        traj_arr(elapsed_plot_time + j) = mp.calc_7th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+        %update trajectory array
+        traj_arr(elapsed_index + j) = mp.calc_7th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+        
+        %update elapsed time array
+        time_arr(elapsed_index + j) = (elapsed_index + j - 1) * time_step;
     end
     
     %accumlate total elapsed time
-    elapsed_plot_time = elapsed_plot_time + traj_plot_times;
-end
-
-for i = 1: ITERATION_TIMES
-        time_arr(i) = (i-1) * time_step;
+    elapsed_index = elapsed_index + traj_plot_times;
 end
 
 figure('Name', 'trajectory');
