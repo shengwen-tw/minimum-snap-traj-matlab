@@ -31,12 +31,12 @@ classdef motion_planner
             Q(8, 8) = b3 * b3 * (1/7) * t^7;
         end
         
-        function traj_polys = plan_optimized_segment(obj, traj, traj_size)
+        function traj_polys = plan_optimized_segment(obj, waypoints, t, traj_size)
             H = zeros(traj_size*8, traj_size*8);
             
             %construct hessian matrix
             for i = 1: traj_size
-                Q = generate_Q_matrix(obj, traj(i).t);
+                Q = generate_Q_matrix(obj, t(i));
                 %disp(Q);
                 
                 r = (i-1)*8 + 1;
@@ -61,7 +61,7 @@ classdef motion_planner
             A = zeros(wp_cnt*4 + (traj_size-1), (wp_cnt - 1) * 8);
             for i = 1: traj_size
                 if i == 1
-                    A_end = generate_A_end_matrix(obj, traj(i).t);
+                    A_end = generate_A_end_matrix(obj, t(i));
                     
                     start_r = 1;
                     end_r = 1 + 4;
@@ -69,7 +69,7 @@ classdef motion_planner
                     A(start_r:start_r+3, c:c+7) = A_start;
                     A(end_r:end_r+3, c:c+7) = A_end;
                 else
-                    A_end = generate_A_end_matrix(obj, traj(i).t);
+                    A_end = generate_A_end_matrix(obj, t(i));
                     
                     next_r = ((i-1)*4) + 1;
                     end_r = (i*4) + 1;
@@ -95,21 +95,21 @@ classdef motion_planner
             d = zeros(4*wp_cnt + traj_size-1, 1);
             for i = 1: traj_size
                 start_r = (i - 1) * 4;
-                d(start_r+1) = traj(i).p_start; %position
-                d(start_r+2) = 0;               %velocity
-                d(start_r+3) = 0;               %acceleration
-                d(start_r+4) = 0;               %jerk
+                d(start_r+1) = waypoints(i); %position
+                d(start_r+2) = 0;                 %velocity
+                d(start_r+3) = 0;                 %acceleration
+                d(start_r+4) = 0;                 %jerk
                 
                 end_r = i * 4;
-                d(end_r+1) = traj(i).p_end; %position
-                d(end_r+2) = 0;             %velocity
-                d(end_r+3) = 0;             %acceleration
-                d(end_r+4) = 0;             %jerk
+                d(end_r+1) = waypoints(i+1); %position
+                d(end_r+2) = 0;                   %velocity
+                d(end_r+3) = 0;                   %acceleration
+                d(end_r+4) = 0;                   %jerk
             end
             %
             for i = 1: (traj_size-1)
                 r = wp_cnt*4 + i;
-                d(r) = traj(i+1).p_start(1);
+                d(r) = waypoints(i+1);
             end
             
             %disp(H)

@@ -1,22 +1,19 @@
 mp = motion_planner;
 
 %trajectory parameters
-traj(1).p_start = 0.5;
-traj(1).p_end = 1.0;
-traj(1).t = 1.0;
-%
-traj(2).p_start = 1.0;
-traj(2).p_end = 2.0;
-traj(2).t = 1.0;
-%
-traj(3).p_start = 2.0;
-traj(3).p_end = 4.0;
-traj(3).t = 1.0;
-%
 traj_size = 3;
+%
+waypoints(1) = 0.5;
+waypoints(2) = 1.0;
+waypoints(3) = 2.0;
+waypoints(4) = 4.0;
+%
+flight_times(1) = 1.0;
+flight_times(2) = 1.0;
+flight_times(3) = 1.0;
 
 %trajectory planning
-traj_coeff_list=mp.plan_optimized_segment(traj, traj_size);
+traj_coeff_list=mp.plan_optimized_segment(waypoints, flight_times, traj_size);
 
 total_flight_time = 0;
 for i = 1: traj_size
