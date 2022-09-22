@@ -1,3 +1,4 @@
+
 classdef motion_planner
     properties
         PLOT_TIMES_PER_SECOND = 50;
@@ -42,14 +43,14 @@ classdef motion_planner
             obj.y_traj_coeffs = traj_gen.plan_optimized_segment(obj.y_waypoints, obj.flight_times, obj.traj_size);
             obj.z_traj_coeffs = traj_gen.plan_optimized_segment(obj.z_waypoints, obj.flight_times, obj.traj_size);
             
-            %disp(obj.x_traj_coeffs);
-            %disp(obj.y_traj_coeffs);
-            %disp(obj.z_traj_coeffs);
+            disp(obj.x_traj_coeffs);
+            disp(obj.y_traj_coeffs);
+            disp(obj.z_traj_coeffs);
             
             ret_obj = obj;
         end
         
-        function [traj_arr, time_arr]=plot_1d_trajectory(obj, traj_coeff)
+        function [traj_arr, vel_arr, accel_arr, time_arr]=plot_1d_trajectory(obj, traj_coeff)
             traj_gen = trajectory_generator;
 
             traj_arr = zeros(1, obj.ITERATION_TIMES);
@@ -66,6 +67,8 @@ classdef motion_planner
                 for j = 1: traj_plot_times
                     %update trajectory array
                     traj_arr(elapsed_index + j) = traj_gen.calc_7th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+                    vel_arr(elapsed_index + j) = traj_gen.calc_6th_polynomial(traj_coeff(i, :), (j-1) * time_step);
+                    accel_arr(elapsed_index + j) = traj_gen.calc_5th_polynomial(traj_coeff(i, :), (j-1) * time_step);
                     
                     %update elapsed time array
                     time_arr(elapsed_index + j) = (elapsed_index + j - 1) * time_step;
@@ -81,11 +84,14 @@ classdef motion_planner
             total_flight_time = traj_gen.get_total_flight_time(obj.flight_times, obj.traj_size);
             obj.ITERATION_TIMES = total_flight_time * obj.PLOT_TIMES_PER_SECOND;
             
-            [x_traj_arr, time_arr] = plot_1d_trajectory(obj, obj.x_traj_coeffs);
-            [y_traj_arr, time_arr] = plot_1d_trajectory(obj, obj.y_traj_coeffs);
-            [z_traj_arr, time_arr] = plot_1d_trajectory(obj, obj.z_traj_coeffs);
-                        
-            figure('Name', 'trajectory');
+            [x_traj_arr, x_vel_arr, x_accel_arr, time_arr] = plot_1d_trajectory(obj, obj.x_traj_coeffs);
+            [y_traj_arr, y_vel_arr, y_accel_arr, time_arr] = plot_1d_trajectory(obj, obj.y_traj_coeffs);
+            [z_traj_arr, z_vel_arr, z_accel_arr, time_arr] = plot_1d_trajectory(obj, obj.z_traj_coeffs);
+            
+            %=====================%
+            % position trajectory %
+            %=====================%
+            figure('Name', 'position trajectory');
             %
             subplot (3, 1, 1);
             plot(time_arr, x_traj_arr);
@@ -104,7 +110,53 @@ classdef motion_planner
             xlabel('time [s]');
             ylabel('z position [m]');
             grid on;
-
+            
+            %=====================%
+            % velocity trajectory %
+            %=====================%
+            figure('Name', 'velocity trajectory');
+            %
+            subplot (3, 1, 1);
+            plot(time_arr, x_vel_arr);
+            xlabel('time [s]');
+            ylabel('x velocity [m/s]');
+            grid on;
+            %
+            subplot (3, 1, 2);
+            plot(time_arr, y_vel_arr);
+            xlabel('time [s]');
+            ylabel('y velocity [m/s]');
+            grid on;
+            %
+            subplot (3, 1, 3);
+            plot(time_arr, z_vel_arr);
+            xlabel('time [s]');
+            ylabel('z velocity [m/s]');
+            grid on;
+            
+            %=========================%
+            % acceleration trajectory %
+            %=========================%
+            figure('Name', 'acceleration trajectory');
+            %
+            subplot (3, 1, 1);
+            plot(time_arr, x_accel_arr);
+            xlabel('time [s]');
+            ylabel('x acceleration [m/s2]');
+            grid on;
+            %
+            subplot (3, 1, 2);
+            plot(time_arr, y_accel_arr);
+            xlabel('time [s]');
+            ylabel('y acceleration [m/s2]');
+            grid on;
+            %
+            subplot (3, 1, 3);
+            plot(time_arr, z_accel_arr);
+            xlabel('time [s]');
+            ylabel('z acceleration [m/s2]');
+            grid on;
+            
             figure('Name', 'trajectory x-y');
             plot(x_traj_arr, y_traj_arr);
             grid on;
